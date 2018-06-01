@@ -30,7 +30,7 @@ module Greeting
 end
 
 # the refinements are activated inside the block
-with_refienements(Greeting) do
+with_refinements(Greeting) do
   hello
 end
 
