@@ -11,7 +11,11 @@ module WithRefinements
       loc = iseq[4].yield_self {|h| h[:code_range] || h[:code_location] }
       path = iseq[7]
       File.readlines(path)[loc[0]-1..loc[2]-1].tap {|ls|
-        ls[0], ls[-1] = ls[0][loc[1]..-1], ls[-1][0..loc[3]]
+        if loc[0] == loc[2]
+          ls[0] = ls[0][loc[1]...loc[3]]
+        else
+          ls[0], ls[-1] = ls[0][loc[1]..-1], ls[-1][0..loc[3]]
+        end
       }.join
     end
   end
