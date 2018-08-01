@@ -16,6 +16,11 @@ module WithRefinements
         else
           ls[0], ls[-1] = ls[0][loc[1]..-1], ls[-1][0..loc[3]]
         end
+
+        # remove -> from -> {}
+        if ls[0].start_with?('->')
+          ls[0] = ls[0][2..-1]
+        end
       }.join
     end
   end

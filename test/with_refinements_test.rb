@@ -45,7 +45,6 @@ class WithRefinementsTest < Test::Unit::TestCase
   end
 
   def test_refine_lambda_sugar
-    pend "not supported yet"
     b = -> { "hi".bang }
     assert("hi!" == with_refinements(Bang, &b))
   end
