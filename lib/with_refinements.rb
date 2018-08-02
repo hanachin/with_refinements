@@ -34,7 +34,7 @@ module WithRefinements
 
       # setup block eval context
       bb = block.binding
-      b.local_variable_set(:__self__, bb.eval('self'))
+      b.local_variable_set(:__self__, bb.receiver)
 
       # copy local_variables
       if local_variable_get
