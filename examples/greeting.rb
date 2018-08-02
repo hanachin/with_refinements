@@ -1,3 +1,5 @@
+require "with_refinements"
+
 module Helloable
   refine(Object) do
     def hello
@@ -13,7 +15,6 @@ module Hiable
     end
   end
 end
-
 
 class Person
   using WithRefinements
