@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    with_refinements (0.3.0)
+    with_refinements (0.4.0)
 
 GEM
   remote: https://rubygems.org/
