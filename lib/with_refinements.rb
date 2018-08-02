@@ -26,7 +26,7 @@ module WithRefinements
   end
 
   refine(Object) do
-    def with_refinements(*ms, local_variable_get: true, &block)
+    def with_refinements(*ms, local_variable_get: true, local_variable_set: true, &block)
       # enable refinements
       b = WithRefinements.clean_binding
       b.local_variable_set(:__modules__, ms)
@@ -42,7 +42,14 @@ module WithRefinements
       end
 
       # eval block code
-      b.eval("__self__.instance_eval #{WithRefinements.code_from_block(block)}")
+      ret = b.eval("__self__.instance_eval #{WithRefinements.code_from_block(block)}")
+
+      # write back local_variables
+      if local_variable_get && local_variable_set
+        bb.local_variables.each {|n| bb.local_variable_set(n, b.local_variable_get(n)) }
+      end
+
+      ret
     end
   end
 end

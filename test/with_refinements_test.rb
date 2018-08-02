@@ -54,9 +54,15 @@ class WithRefinementsTest < Test::Unit::TestCase
     assert_raise(NoMethodError) { "hi".bang }
   end
 
-  def test_local_var_ref
+  def test_local_var_get
     hi = "hi"
     assert("hi!" == with_refinements(Bang) { hi.bang })
+  end
+
+  def test_local_var_set
+    hi = "hi"
+    with_refinements { hi = "hi!" }
+    assert("hi!" == hi)
   end
 
   def test_using_multiple_module
@@ -70,5 +76,11 @@ class WithRefinementsTest < Test::Unit::TestCase
   def test_local_variable_get_is_false
     hi = "hi"
     assert_raise(NameError) { with_refinements(Bang, local_variable_get: false) { hi.bang } }
+  end
+
+  def test_local_variable_set_is_false
+    hi = "hi"
+    with_refinements(Bang, local_variable_set: false) { hi = "hi!" }
+    assert("hi" == hi)
   end
 end
