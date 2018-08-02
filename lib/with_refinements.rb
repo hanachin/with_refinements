@@ -3,7 +3,7 @@ require "with_refinements/version"
 module WithRefinements
   class << self
     def clean_binding
-      eval('module Class.new::CleanRoom; binding; end')
+      TOPLEVEL_BINDING.eval('Module.new { break binding }')
     end
 
     def code_from_block(block)
