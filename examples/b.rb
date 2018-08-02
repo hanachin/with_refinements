@@ -2,6 +2,7 @@ require "benchmark_driver"
 
 Benchmark.driver do |x|
   x.prelude <<~RUBY
+    require "bundler/setup"
     require "with_refinements"
 
     using WithRefinements
