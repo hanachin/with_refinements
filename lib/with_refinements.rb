@@ -10,9 +10,7 @@ module WithRefinements
     end
 
     def code_from_block(block)
-      iseq = RubyVM::InstructionSequence.of(block).to_a
-      loc = iseq[4].yield_self {|h| h[:code_range] || h[:code_location] }
-      path = iseq[7]
+      path, loc = block_source_location(block)
       File.readlines(path)[loc[0]-1..loc[2]-1].tap {|ls|
         if loc[0] == loc[2]
           ls[0] = ls[0][loc[1]...loc[3]]
@@ -28,6 +26,13 @@ module WithRefinements
     end
 
     private
+
+    def block_source_location(block)
+      iseq = RubyVM::InstructionSequence.of(block).to_a
+      loc = iseq[4].yield_self {|h| h[:code_range] || h[:code_location] }
+      path = iseq[7]
+      return path, loc
+    end
 
     def clean_binding
       TOPLEVEL_BINDING.eval('Module.new { break binding }')
