@@ -73,14 +73,10 @@ class WithRefinementsTest < Test::Unit::TestCase
     assert("hi!!" == with_refinements(Module.new { refine(String) { def bangbang; self + "!!"; end }}) { "hi".bangbang })
   end
 
-  def test_local_variable_get_is_false
+  def test_local_variables_opt_is_false
     hi = "hi"
-    assert_raise(NameError) { with_refinements(Bang, local_variable_get: false) { hi.bang } }
-  end
-
-  def test_local_variable_set_is_false
-    hi = "hi"
-    with_refinements(Bang, local_variable_set: false) { hi = "hi!" }
+    with_refinements(Bang, local_variables: false) { hi = "hi!" }
     assert("hi" == hi)
+    assert_raise(NameError) { with_refinements(Bang, local_variables: false) { hi.bang } }
   end
 end

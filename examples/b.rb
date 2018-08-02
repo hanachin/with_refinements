@@ -25,15 +25,7 @@ Benchmark.driver do |x|
     with_refinements(M) { "hello".goodbye }
   }
 
-  x.report 'with_refinements(local_variable_get: false)', %{
-    with_refinements(M, local_variable_get: false) { "hello".goodbye }
-  }
-
-  x.report 'with_refinements(local_variable_set: false)', %{
-    with_refinements(M, local_variable_set: false) { "hello".goodbye }
-  }
-
-  x.report 'with_refinements(local_variable_get: false, local_variable_set: false)', %{
-    with_refinements(M, local_variable_get: false, local_variable_set: false) { "hello".goodbye }
+  x.report 'with_refinements(local_variables: false)', %{
+    with_refinements(M, local_variables: false) { "hello".goodbye }
   }
 end
