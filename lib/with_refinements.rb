@@ -2,8 +2,11 @@ require "with_refinements/version"
 
 module WithRefinements
   class << self
-    def clean_binding
-      TOPLEVEL_BINDING.eval('Module.new { break binding }')
+    def binding_with(refinements)
+      b = clean_binding
+      b.local_variable_set(:__refinements__, refinements)
+      b.eval('__refinements__.each {|r| using r }')
+      b
     end
 
     def code_from_block(block)
@@ -23,14 +26,18 @@ module WithRefinements
         end
       }.join
     end
+
+    private
+
+    def clean_binding
+      TOPLEVEL_BINDING.eval('Module.new { break binding }')
+    end
   end
 
   refine(Object) do
-    def with_refinements(*ms, local_variables: true, &block)
+    def with_refinements(*refinements, local_variables: true, &block)
       # enable refinements
-      b = WithRefinements.clean_binding
-      b.local_variable_set(:__modules__, ms)
-      b.eval('__modules__.each {|m| using m }')
+      b = WithRefinements.binding_with(refinements)
 
       # setup block eval context
       bb = block.binding
