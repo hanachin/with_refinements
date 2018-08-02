@@ -66,4 +66,9 @@ class WithRefinementsTest < Test::Unit::TestCase
   def test_using_anonymous_module
     assert("hi!!" == with_refinements(Module.new { refine(String) { def bangbang; self + "!!"; end }}) { "hi".bangbang })
   end
+
+  def test_local_variable_get_is_false
+    hi = "hi"
+    assert_raise(NameError) { with_refinements(Bang, local_variable_get: false) { hi.bang } }
+  end
 end
