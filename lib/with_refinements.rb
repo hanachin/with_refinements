@@ -3,7 +3,7 @@ require "with_refinements/version"
 module WithRefinements
   @context_cache = {}
   @refined_proc_cache = Hash.new {|h,k| h[k] = {} }
-  @refined_proc_cache_light = Hash.new {|h,k| h[k] = {} }
+  @refined_proc_light_cache = Hash.new {|h,k| h[k] = {} }
 
   class << self
     def context(refinements)
@@ -29,7 +29,7 @@ module WithRefinements
     end
 
     def refined_proc_light(c, block)
-      @refined_proc_cache_light[c][block.source_location] ||= (
+      @refined_proc_light_cache[c][block.source_location] ||= (
         c.eval(<<~RUBY)
           proc { |__receiver__, __args__| __receiver__.instance_exec(*__args__) #{code_from_block(block)} }
         RUBY
