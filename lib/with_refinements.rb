@@ -27,7 +27,7 @@ module WithRefinements
         end
         c.eval(<<~RUBY)
           proc do |#{args}|
-            ret = __binding__.receiver.instance_eval #{WithRefinements.code_from_block(block)}
+            ret = __binding__.receiver.instance_eval #{code_from_block(block)}
             #{lvars.map {|v| "__binding__.local_variable_set(:#{v}, #{v})" }.join("\n")}
             ret
           end
