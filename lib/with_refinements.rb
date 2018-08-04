@@ -21,7 +21,7 @@ module WithRefinements
         c.eval(<<~RUBY)
           proc do |__binding__|
             proc { |#{lvars.join(",")}|
-              ret = __binding__.receiver.instance_eval #{code_from_block(block)}
+              ret = __binding__.receiver.instance_exec #{code_from_block(block)}
               #{lvars.map {|v| "__binding__.local_variable_set(:#{v}, #{v})" }.join("\n")}
               ret
             }.call(*__binding__.local_variables.map {|v| __binding__.local_variable_get(v) })
@@ -33,7 +33,7 @@ module WithRefinements
     def refined_proc_light(c, block)
       refined_proc_cache_light[c][block.source_location] ||= (
         c.eval(<<~RUBY)
-          proc { |__receiver__| __receiver__.instance_eval #{code_from_block(block)} }
+          proc { |__receiver__| __receiver__.instance_exec #{code_from_block(block)} }
         RUBY
       )
     end
