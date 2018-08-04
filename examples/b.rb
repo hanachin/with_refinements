@@ -15,11 +15,30 @@ Benchmark.driver do |x|
         end
       end
     end
+
+    module Plain
+      refine(String) do
+        def world
+          -"world"
+        end
+      end
+    end
+
+    using Plain
+
+    class String
+      def george
+        -"george"
+      end
+    end
   RUBY
 
-  x.report 'plain', %{
-    using M
-    "hello".goodbye
+  x.report 'plain monkey patch', %{
+    "hello".george
+  }
+
+  x.report 'plain refinements', %{
+    "hello".world
   }
 
   x.report 'with_refinements', %{
