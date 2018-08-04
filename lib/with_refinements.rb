@@ -67,16 +67,14 @@ module WithRefinements
 
   refine(Object) do
     def with_refinements(*refinements, local_variables: true, &block)
-      # setup block eval context
       c = WithRefinements.context(refinements)
       p = WithRefinements.refined_proc(c, block, local_variables)
-      bb = block.binding
       if local_variables
-        lvars = bb.local_variables.map {|v| bb.local_variable_get(v) }
+        bb = block.binding
+        p.call(bb, *bb.local_variables.map {|v| bb.local_variable_get(v) })
       else
-        lvars = []
+        p.call(block.binding)
       end
-      p.call(bb, *lvars)
     end
   end
 end
