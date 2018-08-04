@@ -61,7 +61,7 @@ class WithRefinementsTest < Test::Unit::TestCase
 
   def test_local_var_set
     hi = "hi"
-    with_refinements { hi = "hi!" }
+    with_refinements(Bang) { hi = hi.bang }
     assert("hi!" == hi)
   end
 
