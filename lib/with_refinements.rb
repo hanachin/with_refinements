@@ -3,9 +3,10 @@ require "with_refinements/version"
 module WithRefinements
   @context_cache = {}
   @refined_proc_cache = Hash.new {|h,k| h[k] = {} }
+  @refined_proc_cache_light = Hash.new {|h,k| h[k] = {} }
 
   class << self
-    attr_accessor :context_cache, :refined_proc_cache
+    attr_accessor :context_cache, :refined_proc_cache, :refined_proc_cache_light
 
     def context(refinements)
       context_cache[refinements] ||= clean_binding.tap do |b|
@@ -14,23 +15,26 @@ module WithRefinements
       end
     end
 
-    def refined_proc(c, block, local_variables)
+    def refined_proc(c, block)
       refined_proc_cache[c][block.source_location] ||= (
-        if local_variables
-          lvars = block.binding.local_variables
-          args = "__binding__, " + lvars.join(",")
-          c.eval(<<~RUBY)
-            proc do |#{args}|
+        lvars = block.binding.local_variables
+        c.eval(<<~RUBY)
+          proc do |__binding__|
+            proc { |#{lvars.join(",")}|
               ret = __binding__.receiver.instance_eval #{code_from_block(block)}
               #{lvars.map {|v| "__binding__.local_variable_set(:#{v}, #{v})" }.join("\n")}
               ret
-            end
-          RUBY
-        else
-          c.eval(<<~RUBY)
-             proc { |__receiver__| __receiver__.instance_eval #{code_from_block(block)} }
-          RUBY
-        end
+            }.call(*__binding__.local_variables.map {|v| __binding__.local_variable_get(v) })
+          end
+        RUBY
+      )
+    end
+
+    def refined_proc_light(c, block)
+      refined_proc_cache_light[c][block.source_location] ||= (
+        c.eval(<<~RUBY)
+          proc { |__receiver__| __receiver__.instance_eval #{code_from_block(block)} }
+        RUBY
       )
     end
 
@@ -65,15 +69,16 @@ module WithRefinements
   end
 
   refine(Object) do
-    def with_refinements(*refinements, local_variables: true, &block)
+    def with_refinements(*refinements, &block)
       c = WithRefinements.context(refinements)
-      p = WithRefinements.refined_proc(c, block, local_variables)
-      if local_variables
-        bb = block.binding
-        p.call(bb, *bb.local_variables.map {|v| bb.local_variable_get(v) })
-      else
-        p.call(block.binding.receiver)
-      end
+      p = WithRefinements.refined_proc(c, block)
+      p.call(block.binding)
+    end
+
+    def with_refinements_light(*refinements, &block)
+      c = WithRefinements.context(refinements)
+      p = WithRefinements.refined_proc_light(c, block)
+      p.call(block.binding.receiver)
     end
   end
 end

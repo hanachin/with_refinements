@@ -26,8 +26,8 @@ Benchmark.driver do |x|
     with_refinements(M) { "hello".goodbye }
   }
 
-  x.report 'with_refinements(local_variables: false)', %{
-    with_refinements(M, local_variables: false) { "hello".goodbye }
+  x.report 'with_refinements_light', %{
+    with_refinements_light(M) { "hello".goodbye }
   }
 
   x.report 'SinRefinements.refining', %{
