@@ -66,21 +66,19 @@ module WithRefinements
     end
   end
 
-  module CoreExt
-    def with_refinements(*refinements, &block)
-      c = WithRefinements.context(refinements)
-      p = WithRefinements.refined_proc(c, block)
-      p.call(block.binding)
-    end
-
-    def with_refinements_light(*refinements, args: [], &block)
-      c = WithRefinements.context(refinements)
-      p = WithRefinements.refined_proc_light(c, block)
-      p.call(block.binding.receiver, args)
-    end
+  def with_refinements(*refinements, &block)
+    c = WithRefinements.context(refinements)
+    p = WithRefinements.refined_proc(c, block)
+    p.call(block.binding)
   end
 
-  refine(Object) do
-    include CoreExt
+  def with_refinements_light(*refinements, args: [], &block)
+    c = WithRefinements.context(refinements)
+    p = WithRefinements.refined_proc_light(c, block)
+    p.call(block.binding.receiver, args)
   end
+
+  module_function :with_refinements, :with_refinements_light
+
+  refine(Object) { include WithRefinements }
 end

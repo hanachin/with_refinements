@@ -1,3 +1,3 @@
 require "with_refinements"
 
-Object.include(WithRefinements::CoreExt)
+Object.include(WithRefinements)
