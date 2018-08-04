@@ -31,7 +31,7 @@ module WithRefinements
     def refined_proc_light(c, block)
       @refined_proc_cache_light[c][block.source_location] ||= (
         c.eval(<<~RUBY)
-          proc { |__receiver__| __receiver__.instance_exec #{code_from_block(block)} }
+          proc { |__receiver__, __args__| __receiver__.instance_exec(*__args__) #{code_from_block(block)} }
         RUBY
       )
     end
@@ -73,10 +73,10 @@ module WithRefinements
       p.call(block.binding)
     end
 
-    def with_refinements_light(*refinements, &block)
+    def with_refinements_light(*refinements, args: [], &block)
       c = WithRefinements.context(refinements)
       p = WithRefinements.refined_proc_light(c, block)
-      p.call(block.binding.receiver)
+      p.call(block.binding.receiver, args)
     end
   end
 

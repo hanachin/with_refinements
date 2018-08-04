@@ -74,6 +74,11 @@ class WithRefinementsTest < Test::Unit::TestCase
   end
 
   def test_with_refinements_light
+    assert("hi!" == with_refinements_light(Bang) { "hi".bang })
+    assert("hi!" == with_refinements_light(Bang, args: ["hi"]) { |hi| hi.bang })
+  end
+
+  def test_with_refinements_light_local_var
     hi = "hi"
     with_refinements_light(Bang) { hi = "hi!" }
     assert("hi" == hi)
