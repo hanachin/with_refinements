@@ -38,6 +38,19 @@ module WithRefinements
       )
     end
 
+    private
+
+    def block_source_location(block)
+      iseq = RubyVM::InstructionSequence.of(block).to_a
+      loc = iseq[4].yield_self {|h| h[:code_range] || h[:code_location] }
+      path = iseq[7]
+      return path, loc
+    end
+
+    def clean_binding
+      TOPLEVEL_BINDING.eval('Module.new { break binding }')
+    end
+
     def code_from_block(block)
       path, loc = block_source_location(block)
       File.readlines(path)[loc[0]-1..loc[2]-1].tap {|ls|
@@ -52,19 +65,6 @@ module WithRefinements
           ls[0] = ls[0][2..-1]
         end
       }.join
-    end
-
-    private
-
-    def block_source_location(block)
-      iseq = RubyVM::InstructionSequence.of(block).to_a
-      loc = iseq[4].yield_self {|h| h[:code_range] || h[:code_location] }
-      path = iseq[7]
-      return path, loc
-    end
-
-    def clean_binding
-      TOPLEVEL_BINDING.eval('Module.new { break binding }')
     end
   end
 
