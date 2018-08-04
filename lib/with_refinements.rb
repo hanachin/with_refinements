@@ -16,22 +16,21 @@ module WithRefinements
 
     def refined_proc(c, block, local_variables)
       refined_proc_cache[c][block.source_location] ||= (
-        bb = block.binding
-        if local_variables == false
-          lvars = []
-          args = "__binding__"
-        elsif (lvars = bb.local_variables).empty?
-          args = "__binding__"
-        else
+        if local_variables
+          lvars = block.binding.local_variables
           args = "__binding__, " + lvars.join(",")
+          c.eval(<<~RUBY)
+            proc do |#{args}|
+              ret = __binding__.receiver.instance_eval #{code_from_block(block)}
+              #{lvars.map {|v| "__binding__.local_variable_set(:#{v}, #{v})" }.join("\n")}
+              ret
+            end
+          RUBY
+        else
+          c.eval(<<~RUBY)
+             proc { |__receiver__| __receiver__.instance_eval #{code_from_block(block)} }
+          RUBY
         end
-        c.eval(<<~RUBY)
-          proc do |#{args}|
-            ret = __binding__.receiver.instance_eval #{code_from_block(block)}
-            #{lvars.map {|v| "__binding__.local_variable_set(:#{v}, #{v})" }.join("\n")}
-            ret
-          end
-        RUBY
       )
     end
 
@@ -73,7 +72,7 @@ module WithRefinements
         bb = block.binding
         p.call(bb, *bb.local_variables.map {|v| bb.local_variable_get(v) })
       else
-        p.call(block.binding)
+        p.call(block.binding.receiver)
       end
     end
   end
