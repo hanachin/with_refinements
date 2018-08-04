@@ -1,12 +1,38 @@
 require "with_refinements/version"
 
 module WithRefinements
+  @context_cache = {}
+  @refined_proc_cache = {}
+
   class << self
-    def binding_with(refinements)
-      b = clean_binding
-      b.local_variable_set(:__refinements__, refinements)
-      b.eval('__refinements__.each {|r| using r }')
-      b
+    attr_accessor :context_cache, :refined_proc_cache
+
+    def context(refinements)
+      context_cache[refinements] ||= clean_binding.tap do |b|
+        b.local_variable_set(:__refinements__, refinements)
+        b.eval('__refinements__.each {|r| using r }')
+      end
+    end
+
+    def refined_proc(c, block, local_variables)
+      refined_proc_cache[block.source_location] ||= (
+        bb = block.binding
+        if local_variables == false
+          lvars = []
+          args = "__binding__"
+        elsif (lvars = bb.local_variables).empty?
+          args = "__binding__"
+        else
+          args = "__binding__, " + lvars.join(",")
+        end
+        c.eval(<<~RUBY)
+          proc do |#{args}|
+            ret = __binding__.receiver.instance_eval #{WithRefinements.code_from_block(block)}
+            #{lvars.map {|v| "__binding__.local_variable_set(:#{v}, #{v})" }.join("\n")}
+            ret
+          end
+        RUBY
+      )
     end
 
     def code_from_block(block)
@@ -41,27 +67,16 @@ module WithRefinements
 
   refine(Object) do
     def with_refinements(*refinements, local_variables: true, &block)
-      # enable refinements
-      b = WithRefinements.binding_with(refinements)
-
       # setup block eval context
+      c = WithRefinements.context(refinements)
+      p = WithRefinements.refined_proc(c, block, local_variables)
       bb = block.binding
-      b.local_variable_set(:__self__, bb.receiver)
-
-      # copy local_variables
       if local_variables
-        bb.local_variables.each {|n| b.local_variable_set(n, bb.local_variable_get(n)) }
+        lvars = bb.local_variables.map {|v| bb.local_variable_get(v) }
+      else
+        lvars = []
       end
-
-      # eval block code
-      ret = b.eval("__self__.instance_eval #{WithRefinements.code_from_block(block)}")
-
-      # write back local_variables
-      if local_variables
-        bb.local_variables.each {|n| bb.local_variable_set(n, b.local_variable_get(n)) }
-      end
-
-      ret
+      p.call(bb, *lvars)
     end
   end
 end
