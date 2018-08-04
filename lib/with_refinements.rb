@@ -68,7 +68,7 @@ module WithRefinements
     end
   end
 
-  refine(Object) do
+  module CoreExt
     def with_refinements(*refinements, &block)
       c = WithRefinements.context(refinements)
       p = WithRefinements.refined_proc(c, block)
@@ -80,5 +80,9 @@ module WithRefinements
       p = WithRefinements.refined_proc_light(c, block)
       p.call(block.binding.receiver)
     end
+  end
+
+  refine(Object) do
+    include CoreExt
   end
 end
