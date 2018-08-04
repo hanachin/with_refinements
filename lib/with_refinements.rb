@@ -2,7 +2,7 @@ require "with_refinements/version"
 
 module WithRefinements
   @context_cache = {}
-  @refined_proc_cache = {}
+  @refined_proc_cache = Hash.new {|h,k| h[k] = {} }
 
   class << self
     attr_accessor :context_cache, :refined_proc_cache
@@ -15,7 +15,7 @@ module WithRefinements
     end
 
     def refined_proc(c, block, local_variables)
-      refined_proc_cache[block.source_location] ||= (
+      refined_proc_cache[c][block.source_location] ||= (
         bb = block.binding
         if local_variables == false
           lvars = []

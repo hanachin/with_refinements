@@ -79,4 +79,10 @@ class WithRefinementsTest < Test::Unit::TestCase
     assert("hi" == hi)
     assert_raise(NameError) { with_refinements(Bang, local_variables: false) { hi.bang } }
   end
+
+  def test_same_proc_in_different_context
+    b = proc { "hi".bang }
+    assert("hi!" == with_refinements(Bang, &b))
+    assert("hi?" == with_refinements(Module.new { refine(String) { def bang; self + "?"; end } }, &b))
+  end
 end
