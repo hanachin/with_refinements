@@ -6,17 +6,15 @@ module WithRefinements
   @refined_proc_cache_light = Hash.new {|h,k| h[k] = {} }
 
   class << self
-    attr_accessor :context_cache, :refined_proc_cache, :refined_proc_cache_light
-
     def context(refinements)
-      context_cache[refinements] ||= clean_binding.tap do |b|
+      @context_cache[refinements] ||= clean_binding.tap do |b|
         b.local_variable_set(:__refinements__, refinements)
         b.eval('__refinements__.each {|r| using r }')
       end
     end
 
     def refined_proc(c, block)
-      refined_proc_cache[c][block.source_location] ||= (
+      @refined_proc_cache[c][block.source_location] ||= (
         lvars = block.binding.local_variables
         c.eval(<<~RUBY)
           proc do |__binding__|
@@ -31,7 +29,7 @@ module WithRefinements
     end
 
     def refined_proc_light(c, block)
-      refined_proc_cache_light[c][block.source_location] ||= (
+      @refined_proc_cache_light[c][block.source_location] ||= (
         c.eval(<<~RUBY)
           proc { |__receiver__| __receiver__.instance_exec #{code_from_block(block)} }
         RUBY
